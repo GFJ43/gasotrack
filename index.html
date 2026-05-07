@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080808">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="GasoTrack">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-512.png">
+<title>GasoTrack — Precios Gasolina España</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+.ac-item{padding:.6rem 1rem;font-size:.83rem;cursor:pointer;transition:background .15s}
+.ac-item:hover{background:#1e1e1e}
+.autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#141414;
+  border:1px solid #1e1e1e;border-radius:10px;z-index:100;max-height:210px;overflow-y:auto}
+.autocomplete-list:empty{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Gaso<span>Track</span></div>
+  <div class="dot" title="Datos en tiempo real MITERD"></div>
+</header>
+
+<nav>
+  <button class="nav-tab active" data-page="page-prices">Precios</button>
+  <button class="nav-tab" data-page="page-map">Mapa</button>
+  <button class="nav-tab" data-page="page-hist">Historial</button>
+</nav>
+
+<!-- PAGE: PRECIOS -->
+<div class="page active" id="page-prices">
+  <div class="lbl">Ciudad / Municipio</div>
+  <div class="row">
+    <div class="iw">
+      <input type="text" id="cityInput" placeholder="Escribe una ciudad..." autocomplete="off">
+      <div class="autocomplete-list" id="acList"></div>
+    </div>
+    <button class="btn" id="searchBtn" onclick="search()">Buscar</button>
+  </div>
+  <div class="pills" id="histPills"></div>
+  <div class="pills" id="favPills" style="margin-top:.35rem"></div>
+
+  <div class="ftabs" id="fuelTabs">
+    <button class="ftab active" data-fuel="G95E5" onclick="selectFuel(this)">Gasolina 95</button>
+    <button class="ftab" data-fuel="G98E5" onclick="selectFuel(this)">Gasolina 98</button>
+    <button class="ftab" data-fuel="GOA" onclick="selectFuel(this)">Diésel</button>
+    <button class="ftab" data-fuel="GPNA" onclick="selectFuel(this)">Gas Natural</button>
+    <button class="ftab" data-fuel="GLP" onclick="selectFuel(this)">GLP</button>
+  </div>
+
+  <div class="stats" id="statsBar" style="display:none">
+    <div class="sc"><div class="v" id="statCount">—</div><div class="l">Gasolineras</div></div>
+    <div class="sc"><div class="v" id="statAvg">—</div><div class="l">Precio medio</div></div>
+    <div class="sc"><div class="v" id="statMin">—</div><div class="l">Mínimo</div></div>
+    <div class="sc"><div class="v" id="statMax">—</div><div class="l">Máximo</div></div>
+  </div>
+
+  <div id="resultsSection">
+    <div class="empty">
+      <div class="ic">⛽</div>
+      <p>Busca una ciudad para ver los precios más baratos</p>
+    </div>
+  </div>
+
+  <div class="calc" id="calcSection" style="display:none">
+    <div class="section-hd">Calculadora de Ahorro</div>
+    <div class="calc-grid">
+      <div class="cf"><label>Litros por repostaje</label><input type="number" id="liters" value="40" min="1" max="200" oninput="calcSavings()"></div>
+      <div class="cf"><label>Repostajes por mes</label><input type="number" id="fillups" value="4" min="1" max="30" oninput="calcSavings()"></div>
+    </div>
+    <div class="sav-bar">
+      <div class="si"><div class="v" id="savDay">—</div><div class="l">Por repostaje</div></div>
+      <div class="si"><div class="v" id="savMonth">—</div><div class="l">Al mes</div></div>
+      <div class="si"><div class="v" id="savYear">—</div><div class="l">Al año</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: MAPA -->
+<div class="page" id="page-map">
+  <div class="section-hd" style="margin-bottom:.75rem">Mapa de precios — Top 3 más baratas</div>
+  <div id="map"><div class="empty"><div class="ic">🗺</div><p>Busca una ciudad en la pestaña Precios primero</p></div></div>
+  <div class="map-legend">
+    <div class="ml-item"><div class="ml-dot" style="background:#fff"></div> #1 Más barata</div>
+    <div class="ml-item"><div class="ml-dot" style="background:#ccc"></div> #2</div>
+    <div class="ml-item"><div class="ml-dot" style="background:#999"></div> #3</div>
+  </div>
+</div>
+
+<!-- PAGE: HISTORIAL -->
+<div class="page" id="page-hist">
+  <div id="histSection">
+    <div class="empty"><div class="ic">📈</div><p>Aún no hay historial. Busca algunas ciudades primero.</p></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+<script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register('./sw.js')
+        .then(()=>console.log('GasoTrack SW registrado'))
+        .catch(e=>console.warn('SW error:',e));
+    });
+  }
+</script>
+</body>
+</html>
